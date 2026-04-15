@@ -72,4 +72,5 @@ def color_statut(val):
     color = 'red' if val == 'Congestionné' else 'green'
     return f'color: {color}'
 
-st.dataframe(frontieres.style.applymap(color_statut, subset=['Statut']), use_container_width=True)
+# CORRECTION ICI : .map au lieu de .applymap
+st.dataframe(frontieres.style.map(color_statut, subset=['Statut']), use_container_width=True)
