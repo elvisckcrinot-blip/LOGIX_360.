@@ -23,7 +23,8 @@ with col3:
 
 st.write("### Journal de Bord IoT")
 log_iot = pd.DataFrame({
-    'Horodatage': pd.date_range(start='2026-04-15 10:00', periods=4, freq='H'),
+    # CORRECTION ICI : 'h' minuscule au lieu de 'H'
+    'Horodatage': pd.date_range(start='2026-04-15 10:00', periods=4, freq='h'),
     'Capteur': ['GPS-01', 'TEMP-04', 'SHOCK-02', 'GPS-01'],
     'Événement': ['Entrée Zone GDIZ', 'Seuil Alerte (28°C)', 'Mouvement détecté', 'Sortie Zone GDIZ']
 })
