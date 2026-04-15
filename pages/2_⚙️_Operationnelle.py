@@ -1,63 +1,72 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import math
 
 st.set_page_config(page_title="Opérationnelle | LOGIX 360", layout="wide")
 
-st.title("⚙️ Interface Opérationnelle")
+st.title("⚙️ Interface Opérationnelle (SC1x)")
 st.markdown("---")
 
-# --- SECTION 1 : SMART INVENTORY (WILSON/EOQ) ---
-st.header("📦 Optimisation des Stocks (Modèle Wilson)")
-st.info("Ce module calcule la Quantité Économique de Commande (EOQ) pour minimiser les coûts totaux.")
+# --- 1. SMART INVENTORY (Modèle Wilson / EOQ) ---
+st.header("📦 1. Automatisation du Réapprovisionnement (EOQ)")
+st.info("Calcul de la Quantité Économique de Commande pour minimiser les coûts de possession et de passation.")
 
 col1, col2, col3 = st.columns(3)
-
 with col1:
-    D = st.number_input("Demande annuelle (Unités)", value=12000, step=100)
-    S = st.number_input("Coût de passation d'une commande (FCFA)", value=5000, step=500)
-    
+    D = st.number_input("Demande Annuelle (Unités)", value=15000)
+    S = st.number_input("Coût de Passation (FCFA/Commande)", value=7500)
 with col2:
-    C = st.number_input("Prix d'achat unitaire (FCFA)", value=1500, step=100)
-    i = st.slider("Taux de possession annuel (%)", 1, 50, 15) / 100
+    C = st.number_input("Valeur Unitaire (FCFA)", value=2500)
+    h_rate = st.slider("Taux de Possession (%)", 5, 40, 18) / 100
+with col3:
+    # Formule Wilson : sqrt((2*D*S)/(C*h))
+    h = C * h_rate
+    eoq = math.sqrt((2 * D * S) / h)
+    st.metric("EOQ (Quantité Optimale)", f"{eoq:.0f} Unités")
+    st.write(f"**Nombre de commandes/an :** {D/eoq:.1f}")
 
-# Calcul de l'EOQ (Formule de Wilson)
-# Q* = sqrt((2 * D * S) / (C * i))
-if C * i > 0:
-    eoq = math.sqrt((2 * D * S) / (C * i))
-    
-    with col3:
-        st.metric("Quantité Idéale (EOQ)", f"{eoq:.0f} unités")
-        st.warning(f"Passer {D/eoq:.1f} commandes par an pour optimiser vos coûts.")
-
-# --- SECTION 2 : REGISTRE DE DOCKING UNIVERSEL ---
+# --- 2. REGISTRE DE DOCKING UNIVERSEL ---
 st.markdown("---")
-st.header("🚛 Registre de Docking & Flux Physique")
-st.write("Gestion des entrées/sorties et affectation des quais de déchargement.")
+st.header("🚛 2. Registre de Docking & Temps de Cycle")
+st.write("Suivi des flux physiques et affectation dynamique des quais.")
 
-# Création d'un tableau interactif pour le Docking
-if 'docking_data' not in st.session_state:
-    st.session_state.docking_data = pd.DataFrame(columns=["Camion ID", "Marchandise", "Quai", "Statut", "Heure Arrivée"])
+# Initialisation du registre via session_state
+if 'docking_db' not in st.session_state:
+    st.session_state.docking_db = pd.DataFrame(columns=["Camion", "Produit", "Quai", "Statut", "Tps_Attente (min)"])
 
-with st.expander("➕ Enregistrer un nouveau mouvement"):
+with st.expander("📥 Enregistrer un flux entrant/sortant", expanded=False):
     c1, c2, c3 = st.columns(3)
-    camion = c1.text_input("Immatriculation")
-    produit = c2.selectbox("Type de Marchandise", ["Maïs", "Soude", "Coton", "Ciment", "Autre"])
-    quai = c3.selectbox("Affectation Quai", ["Quai A1", "Quai A2", "Quai B1", "Quai B2"])
+    id_camion = c1.text_input("ID Camion (ex: RB 4567)")
+    type_p = c2.selectbox("Marchandise", ["Coton", "Ciment", "Noix de Cajou", "Maïs", "Huile de Palme"])
+    q_af = c3.selectbox("Quai", ["Quai 01", "Quai 02", "Quai 03", "Zone Transit"])
     
     if st.button("Valider l'affectation"):
-        new_row = {"Camion ID": camion, "Marchandise": produit, "Quai": quai, "Statut": "En cours", "Heure Arrivée": "16:15"}
-        st.session_state.docking_data = pd.concat([st.session_state.docking_data, pd.DataFrame([new_row])], ignore_index=True)
-        st.success(f"Camion {camion} affecté au {quai}")
+        new_entry = pd.DataFrame([[id_camion, type_p, q_af, "En cours", np.random.randint(5, 45)]], 
+                                 columns=["Camion", "Produit", "Quai", "Statut", "Tps_Attente (min)"])
+        st.session_state.docking_db = pd.concat([st.session_state.docking_db, new_entry], ignore_index=True)
 
-st.table(st.session_state.docking_data)
+st.dataframe(st.session_state.docking_db, use_container_width=True)
 
-# --- SECTION 3 : LEAN DASHBOARD (MUDA) ---
+# --- 3. LEAN DASHBOARD (TRG/OEE & MUDA) ---
 st.markdown("---")
-st.header("📉 Performance Lean (Détection des Gaspillages)")
-muda_type = st.multiselect("Identifier les gaspillages observés aujourd'hui (MUDA) :", 
-                           ["Surproduction", "Attentes", "Transport inutile", "Stocks excessifs", "Mouvements inutiles", "Défauts"])
+st.header("📉 3. Lean Dashboard & Performance (OEE)")
+col_lean1, col_lean2 = st.columns(2)
 
-if muda_type:
-    st.error(f"Attention : {len(muda_type)} sources de gaspillage identifiées. Action corrective requise.")
-  
+with col_lean1:
+    st.write("### Suivi du Taux de Rendement Global (TRG)")
+    dispo = st.slider("Disponibilité (%)", 0, 100, 85) / 100
+    perf = st.slider("Performance (%)", 0, 100, 90) / 100
+    qualite = st.slider("Qualité (%)", 0, 100, 98) / 100
+    oee = dispo * perf * qualite
+    st.metric("OEE / TRG Actuel", f"{oee*100:.1f} %", delta="Cible: 85%")
+
+with col_lean2:
+    st.write("### Analyse des MUDA (Gaspillages)")
+    muda_list = st.multiselect("Identifier les pertes détectées :", 
+                               ["Surproduction", "Attentes", "Transports Inutiles", "Stocks", "Mouvements", "Défauts", "Sous-utilisation"])
+    if muda_list:
+        st.warning(f"Alerte Lean : {len(muda_list)} sources de gaspillage impactent la productivité.")
+    else:
+        st.success("Aucun MUDA critique détecté aujourd'hui.")
+    
