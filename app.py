@@ -1,23 +1,20 @@
 import streamlit as st
 
-st.set_page_config(page_title="LOGIX 360", layout="wide", page_icon="📦")
+st.set_page_config(page_title="LOGIX 360 | Hub", layout="wide", page_icon="📦")
 
-# Menu latéral professionnel
-st.sidebar.title("📦 LOGIX 360")
-st.sidebar.markdown("---")
-menu = st.sidebar.selectbox(
-    "Navigation",
-    ["🔬 ANALYTIQUE", "⚙️ OPÉRATIONNELLE", "🌍 STRATÉGIQUE", "⚡ DYNAMIQUE", "🛡️ SYSTÈMES"]
-)
+st.title("📦 LOGIX 360 : Hub SCM 4.0")
+st.markdown("---")
 
-# Simulation du routage
-if menu == "🔬 ANALYTIQUE":
-    st.title("Interface Analytique")
-    st.subheader("Optimisation du Centre de Profit & IA")
-    # C'est ici que nous mettrons ton code de la Capture 8 (Modélisation profit)
-    
-elif menu == "⚙️ OPÉRATIONNELLE":
-    st.title("Interface Opérationnelle")
-    # C'est ici que nous mettrons ton Registre de Quai (Capture 9)
+st.write("""
+### Bienvenue dans le futur de la Supply Chain Industrielle.
+Cette plateforme fusionne les standards du **MIT MicroMasters** avec l'intelligence artificielle 
+pour piloter la performance logistique au Bénin et vers la zone ZLECAF.
 
-# Ajoute les autres sections sur le même modèle...
+**Utilisez la barre latérale pour naviguer entre les interfaces stratégiques.**
+""")
+
+# Un petit Dashboard de résumé peut être ajouté ici
+col1, col2, col3 = st.columns(3)
+col1.metric("Statut Système", "Optimal ✅")
+col2.metric("Moteur IA", "Random Forest Actif 🤖")
+col3.metric("Région", "Bénin / ZLECAF 🌍")
